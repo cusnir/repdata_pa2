@@ -15,13 +15,17 @@ library(ggplot2)
 
 Storms and other severe weather events can cause both public health and economic problems for   communities and municipalities. Many severe events can result in fatalities, injuries, and   property damage, and preventing such outcomes to the extent possible is a key concern.  
 
-This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA)   storm database. This database tracks characteristics of major storms and weather events in the   United States, including when and where they occur, as well as estimates of any fatalities,   injuries, and property damage.  
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA)   storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.  
 
-The basic goal of this analysis is to explore the NOAA Storm Database and answer some basic   **Questions** about severe weather events:
+The basic goal of this analysis is to explore the NOAA Storm Database and answer next **Questions** about severe weather events:
 
 1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 2. Across the United States, which types of events have the greatest economic consequences?
 
+The analysis performed in this report shows that most harmfull weather evetns to humman population 
+is caused by Tornados, Excessive Heat and Floods.  
+On the other hand the most economical impact on property is related to Huricane/typhoon, tornados, storms.  
+The most damage produced to agriculture, crop damage is caused by Droughts, Floods, Ice Storms and Hails.
 
 ## Data Processing
 
@@ -221,7 +225,7 @@ however for other symbols we can decode it as follows:
 - m,M stands for millions, 10^6
 - B stands for billions, 10^9
 - a number n that will be exponent 10^n
-- for "", "-", "+", "?" we will use 10^0=1
+- for "", "-", "+", "?" will use 10^0=1
 
 Here is calculated the exponent based on this approach for crop and prop damage
 
@@ -374,8 +378,8 @@ print(bar4, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
 
 ![](PA2_files/figure-html/unnamed-chunk-19-1.png) 
 
-So it can be clearly be seen that most impact from harmful weather
+So it can be clearly seen that most impact from harmful weather
 on agriculture(crops) is due to Droughts and Floods
-while most of property damages are due to Floods, Huricanes, Tornados ans Storms.
+while most of property damages are due to Huricane/Typhoon, Tornados ans Storms.
 
 
