@@ -1,0 +1,381 @@
+# Harmfull weather events: Impact on the U.S. population health and economy consequences
+Andrei Cusnir  
+2015 May, 23  
+
+## Import libraries that will be used in this script
+
+
+```r
+library(dplyr)
+library(grid)
+library(ggplot2)
+```
+
+## Synopsis
+
+Storms and other severe weather events can cause both public health and economic problems for   communities and municipalities. Many severe events can result in fatalities, injuries, and   property damage, and preventing such outcomes to the extent possible is a key concern.  
+
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA)   storm database. This database tracks characteristics of major storms and weather events in the   United States, including when and where they occur, as well as estimates of any fatalities,   injuries, and property damage.  
+
+The basic goal of this analysis is to explore the NOAA Storm Database and answer some basic   **Questions** about severe weather events:
+
+1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+2. Across the United States, which types of events have the greatest economic consequences?
+
+
+## Data Processing
+
+### Loading and Processing the Raw Data
+
+
+```r
+data.url <- "https://d396qusza40orc.cloudfront.net/repdata/data/StormData.csv.bz2"
+file.name <- "StormData.csv.bz2"
+
+# downloading archive
+# for windows users method = "curl" can be skipped
+if (!file.exists(file.name)) {
+    download.file(data.url, destfile = file.name, method = "curl")
+}
+```
+
+### Loading the data.
+The data is quite big, so it will take some time and resources to load,  
+on most modern hardware it should load fine in about 2-3minutes.
+
+
+```r
+# reading the data into storm.data
+storm.data <- read.csv(bzfile(file.name))
+
+# make storm.data suitable for usage with dplyr
+storm.data <- tbl_df(storm.data)
+```
+
+### Inspect 10 most frequent weather event types
+
+
+```r
+select(storm.data, EVTYPE) %>%
+    group_by(EVTYPE) %>%
+    summarise(count = n()) %>%
+    arrange(desc(count))
+```
+
+```
+## Source: local data frame [985 x 2]
+## 
+##                EVTYPE  count
+## 1                HAIL 288661
+## 2           TSTM WIND 219940
+## 3   THUNDERSTORM WIND  82563
+## 4             TORNADO  60652
+## 5         FLASH FLOOD  54277
+## 6               FLOOD  25326
+## 7  THUNDERSTORM WINDS  20843
+## 8           HIGH WIND  20212
+## 9           LIGHTNING  15754
+## 10         HEAVY SNOW  15708
+## ..                ...    ...
+```
+
+So it can be seen the most severe weather events are:
+Hails, thunderstorms, tornados, floods, lightnings, heavy snows...
+
+### Number of weather events recorded by year
+Though this is not required in the assessment it will be interesting to see how many 
+events where registered each year
+
+
+```r
+# add one column which contains the year of event
+storm.data$event.year <- format(as.Date(storm.data$BGN_DATE, "%m/%d/%Y %H:%M:%S"), "%Y")
+
+events.by.year <- select(storm.data, event.year) %>%
+    group_by(event.year) %>%
+    summarise(count = n())
+```
+
+building the plot
+
+
+```r
+bar0 <- ggplot(events.by.year, aes(event.year, count))
+bar0 + geom_bar(stat="identity", colour="darkblue", fill="lightgray") +
+    scale_y_continuous(breaks=seq(0, 65000, 5000)) +
+    ggtitle("Registered number of harmfull weather events, 1950-2011") +
+    ylab("Number of events") + xlab("Years") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+```
+
+![](PA2_files/figure-html/unnamed-chunk-6-1.png) 
+The number of registered events was gradually increasing each year since 1950 untill 1993,  
+from 1993 the number of registered weather events was increasing at a much faster pace
+
+
+### Select the variables that will be used in this report
+
+
+```r
+storm.data <- select(storm.data, BGN_DATE, EVTYPE, STATE, COUNTYNAME, FATALITIES, INJURIES, 
+                     PROPDMG,PROPDMGEXP, CROPDMG, CROPDMGEXP, REFNUM, REMARKS)
+```
+
+Make sure selected rows does not have any NA values
+
+
+```r
+anyNA(storm.data)
+```
+
+```
+## [1] FALSE
+```
+No NA data in this subset, which is good.
+
+## Results
+
+### 1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
+
+
+```r
+population.impact <- select(storm.data, -c(PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP)) %>%
+    group_by(EVTYPE) %>%
+    summarise(injuries = sum(INJURIES), fatalities = sum(FATALITIES))
+population.fatalities <- select(population.impact, EVTYPE, fatalities) %>%
+    arrange(desc(fatalities))
+population.injuries <- select(population.impact, EVTYPE, injuries) %>%
+    arrange(desc(injuries))
+```
+
+Here we can see top 10 harmfull weather conditions that result in fatalities and injuries.  
+
+
+```r
+bar1 <- ggplot(population.fatalities[1:10, ], aes(reorder(EVTYPE, -fatalities), fatalities)) +
+    geom_bar(stat="identity", colour="darkred", fill="lightgray") +
+    scale_y_continuous(breaks=seq(0, 5000, 1000)) +
+    ggtitle("Top 10 weather events fatalities impact, 1950-2011") +
+    ylab("Count of fatalities") + xlab("Types of Weather Events") +
+    geom_text(aes(label = round(fatalities, 0), size = 1, hjust = 0.5, vjust = 1.5)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1), legend.position = 'none')
+
+bar2 <- ggplot(population.injuries[1:10, ], aes(reorder(EVTYPE, -injuries), injuries)) +
+    geom_bar(stat="identity", colour="darkblue", fill="lightgray") +
+    scale_y_continuous(breaks=seq(0, 90000, 10000)) +
+    ggtitle("Top 10 weather events injuries impact, 1950-2011") +
+    ylab("Count of injuries") + xlab("Types of Weather Events") +
+    geom_text(aes(label = round(injuries, 0), size = 1, hjust = 0.5, vjust = 1.5)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1), legend.position = 'none')
+
+pushViewport(viewport(layout = grid.layout(1, 2)))
+print(bar1, vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
+print(bar2, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
+```
+
+![](PA2_files/figure-html/unnamed-chunk-10-1.png) 
+
+So the most harmfull weather event from both tops ten is the Tornado,  
+it causes most injuries and fatalities, 
+second most fatal weather condition is Excessive heat,
+while the second weather condition that causes most injuries is Tstm Wind
+
+### 2. Across the United States, which types of events have the greatest economic consequences?
+
+We have two types of economic impact from harmfull weather conditions:  
+
+- Property damages
+- Crop damages
+
+Also for some reasons indicated damage is US dollars is split over 2 columns:
+
+- ammount of dollars for either crop or prop
+- exp, exponent we should use with the ammount
+
+One thing makes our analyse more difficult is that the exp is presented in different formats.
+
+
+```r
+levels(storm.data$PROPDMGEXP)
+```
+
+```
+##  [1] ""  "-" "?" "+" "0" "1" "2" "3" "4" "5" "6" "7" "8" "B" "h" "H" "K"
+## [18] "m" "M"
+```
+
+```r
+# and
+levels(storm.data$CROPDMGEXP)
+```
+
+```
+## [1] ""  "?" "0" "2" "B" "k" "K" "m" "M"
+```
+
+there seems to be no codebook explaining what -, +, ?
+however for other symbols we can decode it as follows:
+
+- h,H stands for hundreds, 10^2
+- k,K stands for thousands, 10^3
+- m,M stands for millions, 10^6
+- B stands for billions, 10^9
+- a number n that will be exponent 10^n
+- for "", "-", "+", "?" we will use 10^0=1
+
+Here is calculated the exponent based on this approach for crop and prop damage
+
+```r
+propdmg.exp.orig <- c("", "-", "?", "+", "0", "1", "2", "3", "4", "5", "6", "7", "8", "B", "h", "H", "K", "m", "M")
+propdmg.exp.new <- c(1, 1, 1, 1, 1, 10, 10^2, 10^3, 10^4, 10^5, 10^6, 10^7, 10^8, 10^9, 10^2, 10^2, 10^3, 10^6, 10^6)
+cropdmg.exp.orig <- c("", "?", "0", "2", "B", "k", "K", "m", "M")
+cropdmg.exp.new <- c(1, 1, 1, 10^2, 10^9, 10^3, 10^3, 10^6, 10^6)
+```
+
+Creating propdmg.multiplyer and cropdmg.multiplyer with numerical multiplyer values
+
+```r
+storm.data$propdmg.multiplyer <- 
+    plyr::mapvalues(storm.data$PROPDMGEXP, propdmg.exp.orig, as.numeric(propdmg.exp.new))
+storm.data$propdmg.multiplyer <- as.numeric(as.character(storm.data$propdmg.multiplyer))
+storm.data$cropdmg.multiplyer <- 
+    plyr::mapvalues(storm.data$CROPDMGEXP, cropdmg.exp.orig, as.numeric(cropdmg.exp.new))
+storm.data$cropdmg.multiplyer <- as.numeric(as.character(storm.data$cropdmg.multiplyer))
+```
+
+Now we can create new variables that will hold full ammount of property and crop damage
+
+
+```r
+storm.data <- mutate(storm.data, prop.dmg = PROPDMG * propdmg.multiplyer) %>%
+   mutate(crop.dmg = CROPDMG * cropdmg.multiplyer) 
+```
+
+Having a look at top 3 weather events with impact on economy
+
+```r
+options(dplyr.width = Inf)
+top3.crop.impact <- select(storm.data, REFNUM, BGN_DATE, EVTYPE, crop.dmg, STATE, COUNTYNAME) %>%
+    arrange(desc(crop.dmg))
+head(top3.crop.impact, 3)
+```
+
+```
+## Source: local data frame [3 x 6]
+## 
+##   REFNUM          BGN_DATE            EVTYPE crop.dmg STATE
+## 1 198375 8/31/1993 0:00:00       RIVER FLOOD 5.00e+09    IL
+## 2 211887  2/9/1994 0:00:00         ICE STORM 5.00e+09    MS
+## 3 581537 8/29/2005 0:00:00 HURRICANE/TYPHOON 1.51e+09    MS
+##                       COUNTYNAME
+## 1      ADAMS, CALHOUN AND JERSEY
+## 2 MSZ001 - 023 - 025 - 026 - 034
+## 3 MSZ018>019 - 025>066 - 072>074
+```
+
+```r
+top3.prop.impact <- select(storm.data, REFNUM, BGN_DATE, EVTYPE, prop.dmg, STATE, COUNTYNAME) %>%
+    arrange(desc(prop.dmg))
+head(top3.prop.impact, 3)
+```
+
+```
+## Source: local data frame [3 x 6]
+## 
+##   REFNUM          BGN_DATE            EVTYPE  prop.dmg STATE
+## 1 605943  1/1/2006 0:00:00             FLOOD 1.150e+11    CA
+## 2 577616 8/29/2005 0:00:00       STORM SURGE 3.130e+10    LA
+## 3 577615 8/28/2005 0:00:00 HURRICANE/TYPHOON 1.693e+10    LA
+##                         COUNTYNAME
+## 1                             NAPA
+## 2 LAZ040 - 059 - 061>064 - 067>070
+## 3   LAZ034>040 - 046>050 - 056>070
+```
+
+Having a look at the particular REFNUM *605943* responsible for the FLOOD in NAPA
+
+
+```r
+filter(storm.data, REFNUM==605943)
+```
+
+```
+## Source: local data frame [1 x 16]
+## 
+##           BGN_DATE EVTYPE STATE COUNTYNAME FATALITIES INJURIES PROPDMG
+## 1 1/1/2006 0:00:00  FLOOD    CA       NAPA          0        0     115
+##   PROPDMGEXP CROPDMG CROPDMGEXP REFNUM
+## 1          B    32.5          M 605943
+##                                                                                                                                                                                                                                                                                                                                                                                          REMARKS
+## 1 Major flooding continued into the early hours of January 1st, before the Napa River finally fell below flood stage and the water receeded. Flooding was severe in Downtown Napa from the Napa Creek and the City and Parks Department was hit with $6 million in damage alone. The City of Napa had 600 homes with moderate damage, 150 damaged businesses with costs of at least $70 million.
+##   propdmg.multiplyer cropdmg.multiplyer prop.dmg crop.dmg
+## 1              1e+09              1e+06 1.15e+11 32500000
+```
+
+Looks like there is an error when submitting property damage,
+so instead of 115 billions we should have something ore like 115 milions.
+Also i can see a discussion in the coursera forum about it.
+
+<https://class.coursera.org/repdata-014/forum/thread?thread_id=140>
+
+So in order to have appropriate results for economic impact 
+i will have to update the calculated value for propdmg for this refnum.
+
+explanation about how next code works
+(REFNUM==605943) * prop.dmg/1000 + (REFNUM!=605943) * prop.dmg
+a row can either have refnum==605943 or not
+so it will either return 0 for first condition or zero for second condition
+
+
+```r
+storm.data <- mutate(storm.data, 
+                     prop.dmg = (REFNUM==605943) * prop.dmg/1000 + (REFNUM!=605943) * prop.dmg )
+```
+
+Next follows mostly the same analysis as for health impact except variables Injuries and Fatalities  
+are to be excluded from the storm.data data frame,
+also grouped_by and summarise will be done on property and crop damage variables
+
+
+```r
+economic.impact <- select(storm.data, -c(FATALITIES, INJURIES)) %>%
+    group_by(EVTYPE) %>%
+    summarise(crop.dmg = sum(crop.dmg), prop.dmg = sum(prop.dmg))
+prop.damage <- select(economic.impact, EVTYPE, prop.dmg) %>%
+    arrange(desc(prop.dmg))
+crop.damage <- select(economic.impact, EVTYPE, crop.dmg) %>%
+    arrange(desc(crop.dmg))
+```
+
+### Building the plots with harmfull weather conditions impact on economy stats
+
+
+```r
+bar3 <- ggplot(prop.damage[1:10, ], aes(reorder(EVTYPE, -prop.dmg), prop.dmg/10^9)) +
+    geom_bar(stat="identity", colour="darkred", fill="lightgray") +
+    scale_y_continuous(breaks=seq(0, 140, 10)) +
+    ggtitle("Top 10 weather events prop damage impact, 1950-2011") +
+    ylab("USD, Billions") + xlab("Types of Weather Events") +
+    geom_text(aes(label = round(prop.dmg/10^9, 2), size = 1, hjust = 0.5, vjust = 1.5)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1), legend.position = 'none')
+
+bar4 <- ggplot(crop.damage[1:10, ], aes(reorder(EVTYPE, -crop.dmg), crop.dmg/10^9)) +
+    geom_bar(stat="identity", colour="darkblue", fill="lightgray") +
+    scale_y_continuous(breaks=seq(0, 15, 1)) +
+    ggtitle("Top 10 weather events crop damage impact, 1950-2011") +
+    ylab("USD, Billions") + xlab("Types of Weather Events") +
+    geom_text(aes(label = round(crop.dmg/10^9, 2), size = 1, hjust = 0.5, vjust = 1.5)) +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1), legend.position = 'none')
+
+pushViewport(viewport(layout = grid.layout(1, 2)))
+print(bar3, vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
+print(bar4, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
+```
+
+![](PA2_files/figure-html/unnamed-chunk-19-1.png) 
+
+So it can be clearly be seen that most impact from harmful weather
+on agriculture(crops) is due to Droughts and Floods
+while most of property damages are due to Floods, Huricanes, Tornados ans Storms.
+
+
