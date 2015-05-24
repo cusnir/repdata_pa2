@@ -5,7 +5,7 @@ author: "Andrei Cusnir"
 date: "2015 May, 23"
 output:
   html_document:
-    fig_height: 8
+    fig_height: 10
     fig_width: 12
     keep_md: yes
     toc: yes
@@ -129,7 +129,21 @@ population.injuries <- select(population.impact, EVTYPE, injuries) %>%
     arrange(desc(injuries))
 ```
 
-Here we can see top 10 harmfull weather conditions that result in fatalities and injuries.  
+It is interesting to know what are the "top" 10 states where health is mostly affected by harmfull weather conditions  
+
+```{r}
+population.state.impact <- select(storm.data, -c(PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP)) %>%
+    group_by(STATE) %>%
+    summarise(injuries = sum(INJURIES), fatalities = sum(FATALITIES))
+population.state.fatalities <- select(population.state.impact, STATE, fatalities) %>%
+    arrange(desc(fatalities)) %>%
+    print
+population.state.injuries <- select(population.state.impact, STATE, injuries) %>%
+    arrange(desc(injuries)) %>%
+    print
+```
+
+#### Creating grid plot for top 10 harmfull weather conditions that result in fatalities and injuries.  
 
 ```{r}
 bar1 <- ggplot(population.fatalities[1:10, ], aes(reorder(EVTYPE, -fatalities), fatalities)) +
@@ -264,7 +278,28 @@ crop.damage <- select(economic.impact, EVTYPE, crop.dmg) %>%
     arrange(desc(crop.dmg))
 ```
 
-### Building the plots with harmfull weather conditions impact on economy stats
+Looking at top 10 states mostly affected economicaly by harmfull weather conditions.  
+
+```{r}
+economic.state.impact <- select(storm.data, -c(FATALITIES, INJURIES)) %>%
+    group_by(STATE) %>%
+    summarise(crop.dmg = round(sum(crop.dmg)/10^9, 2), prop.dmg = round(sum(prop.dmg)/10^9, 2))
+```
+
+Economic damage indicated in Billions  
+```{r}
+prop.state.damage <- select(economic.state.impact, STATE, prop.dmg) %>%
+    arrange(desc(prop.dmg)) %>%
+    print
+crop.state.damage <- select(economic.state.impact, STATE, crop.dmg) %>%
+    arrange(desc(crop.dmg)) %>%
+    print
+```
+
+LA, FL, MS, TX and AL are top 5 states that harmful weather causes most of property damages.  
+TX, MS, IL, IA and FL are top 5 states that harmful weather causes most of crop damages.
+
+#### Building the grid plot with harmfull weather conditions impact on economy stats
 
 ```{r}
 bar3 <- ggplot(prop.damage[1:10, ], aes(reorder(EVTYPE, -prop.dmg), prop.dmg/10^9)) +

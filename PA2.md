@@ -152,7 +152,59 @@ population.injuries <- select(population.impact, EVTYPE, injuries) %>%
     arrange(desc(injuries))
 ```
 
-Here we can see top 10 harmfull weather conditions that result in fatalities and injuries.  
+It is interesting to know what are the "top" 10 states where health is mostly affected by harmfull weather conditions  
+
+
+```r
+population.state.impact <- select(storm.data, -c(PROPDMG, PROPDMGEXP, CROPDMG, CROPDMGEXP)) %>%
+    group_by(STATE) %>%
+    summarise(injuries = sum(INJURIES), fatalities = sum(FATALITIES))
+population.state.fatalities <- select(population.state.impact, STATE, fatalities) %>%
+    arrange(desc(fatalities)) %>%
+    print
+```
+
+```
+## Source: local data frame [72 x 2]
+## 
+##    STATE fatalities
+## 1     IL       1421
+## 2     TX       1366
+## 3     PA        846
+## 4     AL        784
+## 5     MO        754
+## 6     FL        746
+## 7     MS        555
+## 8     CA        550
+## 9     AR        530
+## 10    TN        521
+## ..   ...        ...
+```
+
+```r
+population.state.injuries <- select(population.state.impact, STATE, injuries) %>%
+    arrange(desc(injuries)) %>%
+    print
+```
+
+```
+## Source: local data frame [72 x 2]
+## 
+##    STATE injuries
+## 1     TX    17667
+## 2     MO     8998
+## 3     AL     8742
+## 4     OH     7112
+## 5     MS     6675
+## 6     FL     5918
+## 7     OK     5710
+## 8     IL     5563
+## 9     AR     5550
+## 10    TN     5202
+## ..   ...      ...
+```
+
+#### Creating grid plot for top 10 harmfull weather conditions that result in fatalities and injuries.  
 
 
 ```r
@@ -177,7 +229,7 @@ print(bar1, vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
 print(bar2, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
 ```
 
-![](PA2_files/figure-html/unnamed-chunk-10-1.png) 
+![](PA2_files/figure-html/unnamed-chunk-11-1.png) 
 
 So the most harmfull weather event from both tops ten is the Tornado,  
 it causes most injuries and fatalities, 
@@ -351,7 +403,67 @@ crop.damage <- select(economic.impact, EVTYPE, crop.dmg) %>%
     arrange(desc(crop.dmg))
 ```
 
-### Building the plots with harmfull weather conditions impact on economy stats
+Looking at top 10 states mostly affected economicaly by harmfull weather conditions.  
+
+
+```r
+economic.state.impact <- select(storm.data, -c(FATALITIES, INJURIES)) %>%
+    group_by(STATE) %>%
+    summarise(crop.dmg = round(sum(crop.dmg)/10^9, 2), prop.dmg = round(sum(prop.dmg)/10^9, 2))
+```
+
+Economic damage indicated in Billions  
+
+```r
+prop.state.damage <- select(economic.state.impact, STATE, prop.dmg) %>%
+    arrange(desc(prop.dmg)) %>%
+    print
+```
+
+```
+## Source: local data frame [72 x 2]
+## 
+##    STATE prop.dmg
+## 1     LA    60.07
+## 2     FL    41.51
+## 3     MS    29.81
+## 4     TX    26.64
+## 5     AL    17.24
+## 6     NC     8.91
+## 7     CA     8.70
+## 8     IL     8.62
+## 9     MO     7.32
+## 10    OH     6.86
+## ..   ...      ...
+```
+
+```r
+crop.state.damage <- select(economic.state.impact, STATE, crop.dmg) %>%
+    arrange(desc(crop.dmg)) %>%
+    print
+```
+
+```
+## Source: local data frame [72 x 2]
+## 
+##    STATE crop.dmg
+## 1     TX     7.30
+## 2     MS     6.61
+## 3     IL     5.55
+## 4     IA     4.70
+## 5     FL     3.90
+## 6     CA     3.53
+## 7     NE     2.17
+## 8     NC     2.05
+## 9     LA     1.23
+## 10    OK     1.21
+## ..   ...      ...
+```
+
+LA, FL, MS, TX and AL are top 5 states that harmful weather causes most of property damages.  
+TX, MS, IL, IA and FL are top 5 states that harmful weather causes most of crop damages.
+
+#### Building the grid plot with harmfull weather conditions impact on economy stats
 
 
 ```r
@@ -376,7 +488,7 @@ print(bar3, vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
 print(bar4, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
 ```
 
-![](PA2_files/figure-html/unnamed-chunk-19-1.png) 
+![](PA2_files/figure-html/unnamed-chunk-22-1.png) 
 
 So it can be clearly seen that most impact from harmful weather
 on agriculture(crops) is due to Droughts and Floods
