@@ -13,9 +13,9 @@ The basic goal of this analysis is to explore the NOAA Storm Database and answer
 1. Across the United States, which types of events (as indicated in the EVTYPE variable) are most harmful with respect to population health?
 2. Across the United States, which types of events have the greatest economic consequences?
 
-The analysis performed in this report shows that most harmfull weather evetns to humman population 
+The analysis performed in this report shows that most harmfull weather evetns to human population 
 is caused by Tornadoes, Excessive Heat and Floods.  
-On the other hand the most economical impact on property is related to Huricane/typhoon, tornados, storms.  
+On the other hand the most economical impact on property is related to Huricane/typhoon, tornadoes, storms.  
 The most damage produced to agriculture, crop damage is caused by Droughts, Floods, Ice Storms and Hails.
 
 ## Data Processing
