@@ -2,15 +2,6 @@
 Andrei Cusnir  
 2015 May, 23  
 
-## Import libraries that will be used in this script
-
-
-```r
-library(dplyr)
-library(grid)
-library(ggplot2)
-```
-
 ## Synopsis
 
 Storms and other severe weather events can cause both public health and economic problems for   communities and municipalities. Many severe events can result in fatalities, injuries, and   property damage, and preventing such outcomes to the extent possible is a key concern.  
@@ -23,11 +14,20 @@ The basic goal of this analysis is to explore the NOAA Storm Database and answer
 2. Across the United States, which types of events have the greatest economic consequences?
 
 The analysis performed in this report shows that most harmfull weather evetns to humman population 
-is caused by Tornados, Excessive Heat and Floods.  
+is caused by Tornadoes, Excessive Heat and Floods.  
 On the other hand the most economical impact on property is related to Huricane/typhoon, tornados, storms.  
 The most damage produced to agriculture, crop damage is caused by Droughts, Floods, Ice Storms and Hails.
 
 ## Data Processing
+
+### Import libraries that will be used in this script
+
+
+```r
+library(dplyr)
+library(grid)
+library(ggplot2)
+```
 
 ### Loading and Processing the Raw Data
 
@@ -83,8 +83,8 @@ select(storm.data, EVTYPE) %>%
 ## ..                ...    ...
 ```
 
-So it can be seen the most severe weather events are:
-Hails, thunderstorms, tornados, floods, lightnings, heavy snows...
+So it can be seen that most frequent harmful weather events are:
+Hails, thunderstorms, tornadoes, floods, lightnings, heavy snows...
 
 ### Number of weather events recorded by year
 Though this is not required in the assessment it will be interesting to see how many 
@@ -380,6 +380,6 @@ print(bar4, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
 
 So it can be clearly seen that most impact from harmful weather
 on agriculture(crops) is due to Droughts and Floods
-while most of property damages are due to Huricane/Typhoon, Tornados ans Storms.
+while most of property damages are due to Huricane/Typhoon, Tornadoes ans Storms.
 
 
